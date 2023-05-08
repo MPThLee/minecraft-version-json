@@ -19,6 +19,12 @@ jobs:
       with:
         ref: refs/heads/master
 
+    - name: Checkout versions
+      uses: actions/checkout@v3
+      with:
+        path: 'versions'
+        ref: refs/heads/gh-pages
+
     - name: Setup java
       uses: actions/setup-java@v3
       with:
@@ -39,5 +45,6 @@ jobs:
         branch: gh-pages # The branch the action should deploy to.
         folder: versions # The folder the action should deploy.
         single-commit: false
+        token: ${{ secrets.BOT_PA_TOKEN }}
         git-config-name: 'github-actions[bot]'
         git-config-email: '41898282+github-actions[bot]@users.noreply.github.com'
