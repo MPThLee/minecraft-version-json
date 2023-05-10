@@ -16,7 +16,8 @@ export async function extractData(client_url: string, version: string): Promise<
     await downloadJarFile(url, version);
 
     LOGGER.info(`Extract ${version}.jar file...`);
-    await extractJarFile(version);
+    const extract = await extractJarFile(version);
+    LOGGER.info(`Java process exited with ${extract.code}`);
 
     LOGGER.info(`Move version.json to ${version}/version.json...`);
     const target = `${STORE_DIR}/${version}`;
@@ -50,15 +51,17 @@ async function downloadJarFile(url: string, version: string) {
   await res.body?.pipeTo(file.writable);
 }
 
-async function extractJarFile(version: string): Promise<Deno.ProcessStatus> {
+async function extractJarFile(version: string): Promise<Deno.CommandStatus> {
   const jar = `${TEMP_DIR}/${version}.jar`;
   const cwd = `${TEMP_DIR}/${version}_decompress`;
   
   // It's cursed...
   await Deno.mkdir(cwd, {recursive: true} );
-  const command = Deno.run({
+  const command = new Deno.Command("java", {
     cwd: cwd,
-    cmd: ["jar", "xvf", jar, "version.json"]
+    args: ["xvf", jar, "version.json"]
   })
-  return await command.status()
+  const process = command.spawn();
+  await process.output();
+  return Promise.resolve(process.status);
 }
