@@ -1,6 +1,5 @@
 import { STORE_DIR, TEMP_DIR } from "./static.ts";
 import { getLogger } from "https://deno.land/std@0.186.0/log/mod.ts";
-import { decompress } from "https://deno.land/x/zip@v1.2.5/mod.ts";
 import { checkStoreDirAndCreate } from "./utils.ts";
 import { downloadClientManifest } from "./manifest.ts";
 
@@ -17,7 +16,7 @@ export async function extractData(client_url: string, version: string): Promise<
 
     LOGGER.info(`Extract ${version}.jar file...`);
     const extract = await extractJarFile(version);
-    LOGGER.info(`Java process exited with ${extract.code}`);
+    LOGGER.info(`Jar extract process exited with ${extract.code}`);
 
     LOGGER.info(`Move version.json to ${version}/version.json...`);
     const target = `${STORE_DIR}/${version}`;
@@ -47,7 +46,6 @@ async function downloadJarFile(url: string, version: string) {
     create: true,
     write: true,
   });
-
   await res.body?.pipeTo(file.writable);
 }
 
@@ -57,11 +55,11 @@ async function extractJarFile(version: string): Promise<Deno.CommandStatus> {
   
   // It's cursed...
   await Deno.mkdir(cwd, {recursive: true} );
-  const command = new Deno.Command("java", {
+  const command = new Deno.Command("jar", {
     cwd: cwd,
     args: ["xvf", jar, "version.json"]
   })
   const process = command.spawn();
   await process.output();
-  return Promise.resolve(process.status);
+  return (process.status);
 }
