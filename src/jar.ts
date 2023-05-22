@@ -5,13 +5,16 @@ import { downloadClientManifest } from "./manifest.ts";
 
 const LOGGER = getLogger();
 
-export async function extractData(client_url: string, version: string): Promise<boolean> {
+export async function extractData(
+  client_url: string,
+  version: string
+): Promise<boolean> {
   try {
     LOGGER.info(`Download ${version} data from ${client_url}...`);
     const data = await downloadClientManifest(client_url);
-    const url = data.downloads.client.url
+    const url = data.downloads.client.url;
 
-    LOGGER.info(`Download ${version}.jar from ${url}...`)
+    LOGGER.info(`Download ${version}.jar from ${url}...`);
     await downloadJarFile(url, version);
 
     LOGGER.info(`Extract ${version}.jar file...`);
@@ -35,7 +38,7 @@ export async function extractData(client_url: string, version: string): Promise<
     return Promise.resolve(true);
   } catch (e) {
     LOGGER.error(`Error on ${version}`);
-    LOGGER.error(e)
+    LOGGER.error(e);
     return Promise.reject(false);
   }
 }
@@ -52,14 +55,14 @@ async function downloadJarFile(url: string, version: string) {
 async function extractJarFile(version: string): Promise<Deno.CommandStatus> {
   const jar = `${TEMP_DIR}/${version}.jar`;
   const cwd = `${TEMP_DIR}/${version}_decompress`;
-  
+
   // It's cursed...
-  await Deno.mkdir(cwd, {recursive: true} );
+  await Deno.mkdir(cwd, { recursive: true });
   const command = new Deno.Command("jar", {
     cwd: cwd,
-    args: ["xvf", jar, "version.json"]
-  })
+    args: ["xvf", jar, "version.json"],
+  });
   const process = command.spawn();
   await process.output();
-  return (process.status);
+  return process.status;
 }

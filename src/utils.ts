@@ -13,7 +13,7 @@ export function snapshotToSemver(snapshotVersion: string): string {
   }
 
   const [_, _major, _minor, patch, extra = null] = result;
-  const [major, minor] = [_major, _minor].map(v => parseInt(v).toString());
+  const [major, minor] = [_major, _minor].map((v) => parseInt(v).toString());
   const numPatch = patch.charCodeAt(0) - 97;
 
   return `${major}.${minor}.${numPatch}` + (extra !== null ? `-${extra}` : "");
@@ -23,16 +23,20 @@ export function checkVesionJsonPresent(
   version: string,
   type: VersionType
 ): boolean {
-  if (type === "snapshot" && version.indexOf("w") > 0 && version.indexOf("w") < 3) {
+  if (
+    type === "snapshot" &&
+    version.indexOf("w") > 0 &&
+    version.indexOf("w") < 3
+  ) {
     version = snapshotToSemver(version);
     return gte(version, "18.47.1"); // 18w47b
   }
 
   if (version.indexOf(".") == version.lastIndexOf(".")) {
     const xs = version.split("-");
-    version = xs[0] + ".0"
+    version = xs[0] + ".0";
     if (xs.length > 1) {
-      version = version + "-" + xs[1]
+      version = version + "-" + xs[1];
     }
   }
 
@@ -53,15 +57,15 @@ export function checkVesionJsonPresent(
 }
 
 export function dirExistsOnStore(dir: string): boolean {
-  return existsSync(`${STORE_DIR}/${dir}`)
+  return existsSync(`${STORE_DIR}/${dir}`);
 }
 
 export function checkVersionDataLocallyExist(version: string): boolean {
-  return dirExistsOnStore(version)
+  return dirExistsOnStore(version);
 }
 
 export function checkStoreDirAndCreate(version: string) {
-  if ( !dirExistsOnStore(version) ) {
+  if (!dirExistsOnStore(version)) {
     Deno.mkdirSync(`${STORE_DIR}/${version}`, { recursive: true });
   }
 }
