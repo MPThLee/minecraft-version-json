@@ -1,4 +1,4 @@
-import { gte } from "https://deno.land/std@0.224.0/semver/mod.ts";
+import { greaterOrEqual } from "https://deno.land/std@0.224.0/semver/mod.ts";
 import { existsSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { VersionType } from "./types/json/base.ts";
 import { STORE_DIR } from "./static.ts";
@@ -29,7 +29,7 @@ export function checkVesionJsonPresent(
     version.indexOf("w") < 3
   ) {
     version = snapshotToSemver(version);
-    return gte(version, "18.47.1"); // 18w47b
+    return greaterOrEqual(version, "18.47.1"); // 18w47b
   }
 
   if (version.indexOf(".") == version.lastIndexOf(".")) {
@@ -50,7 +50,7 @@ export function checkVesionJsonPresent(
 
   // Failed to false
   try {
-    return gte(version, "1.14.0");
+    return greaterOrEqual(version, "1.14.0");
   } catch {
     return false;
   }
