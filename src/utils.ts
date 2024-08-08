@@ -1,5 +1,5 @@
-import { gte } from "https://deno.land/std@0.186.0/semver/mod.ts";
-import { existsSync } from "https://deno.land/std@0.186.0/fs/mod.ts";
+import { gte } from "https://deno.land/std@0.224.0/semver/mod.ts";
+import { existsSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { VersionType } from "./types/json/base.ts";
 import { STORE_DIR } from "./static.ts";
 

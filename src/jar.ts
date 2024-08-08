@@ -1,5 +1,5 @@
 import { STORE_DIR, TEMP_DIR } from "./static.ts";
-import { getLogger } from "https://deno.land/std@0.186.0/log/mod.ts";
+import { getLogger } from "https://deno.land/std@0.224.0/log/mod.ts";
 import { checkStoreDirAndCreate } from "./utils.ts";
 import { downloadClientManifest } from "./manifest.ts";
 

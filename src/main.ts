@@ -1,4 +1,4 @@
-import * as log from "https://deno.land/std@0.186.0/log/mod.ts";
+import * as log from "https://deno.land/std@0.224.0/log/mod.ts";
 import { downloadVersionManifest, returnValidVersions } from "./manifest.ts";
 import { dirExistsOnStore } from "./utils.ts";
 import { extractData } from "./jar.ts";
