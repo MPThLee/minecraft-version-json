@@ -14,10 +14,8 @@ jobs:
     name: Load version.json
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout master
+      - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: refs/heads/master
 
       - name: Checkout versions
         if: github.ref == 'refs/heads/master'
