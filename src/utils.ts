@@ -1,7 +1,10 @@
 import { greaterOrEqual } from "https://deno.land/std@0.224.0/semver/mod.ts";
+import { getLogger } from "https://deno.land/std@0.224.0/log/mod.ts";
 import { existsSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { VersionType } from "./types/json/base.ts";
 import { STORE_DIR } from "./static.ts";
+
+const LOGGER = getLogger();
 
 export function snapshotToSemver(snapshotVersion: string): string {
   // 23w12a-blash
@@ -29,7 +32,12 @@ export function checkVesionJsonPresent(
     version.indexOf("w") < 3
   ) {
     version = snapshotToSemver(version);
-    return greaterOrEqual(version, "18.47.1"); // 18w47b
+    try {
+      return greaterOrEqual(version, "18.47.1"); // 18w47b
+    } catch (error) {
+      LOGGER.error(`Got error during compare version '${version}' : ${error}`);
+      throw error;
+    }
   }
 
   if (version.indexOf(".") == version.lastIndexOf(".")) {
