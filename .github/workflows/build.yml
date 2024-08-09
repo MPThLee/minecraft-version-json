@@ -2,7 +2,6 @@ name: Build and Deploy
 
 on:
   push:
-    branches: [master]
   schedule:
     - cron: "5 4 * * *"
   workflow_dispatch:
@@ -15,12 +14,30 @@ jobs:
     name: Load version.json
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout master
+      - name: Determine Ref
+        id: determine-ref
+        uses: actions/github-script@v7
+        with:
+          script: |
+            switch (context.eventName) {
+              case 'workflow_dispatch':
+              case 'schedule':
+                core.setOutput('ref', 'refs/heads/master');
+                break;
+              case 'push':
+                core.setOutput('ref', context.ref)
+                break;
+              default:
+                throw new Error(`Unsupported event: ${eventName}`);
+            };
+
+      - name: Checkout branch
         uses: actions/checkout@v4
         with:
-          ref: refs/heads/master
+          ref: ${{ steps.determine-ref.outputs.ref }}
 
       - name: Checkout versions
+        if: ${{ steps.determine-ref.outputs.ref == 'refs/heads/master' }}
         uses: actions/checkout@v4
         with:
           path: "versions"
@@ -41,6 +58,7 @@ jobs:
         run: deno run -A ./src/main.ts
 
       - name: Deploy to gh-pages
+        if: ${{ steps.determine-ref.outputs.ref == 'refs/heads/master' }}
         uses: JamesIves/github-pages-deploy-action@v4.6.3
         with:
           branch: gh-pages # The branch the action should deploy to.

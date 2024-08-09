@@ -1,10 +1,17 @@
-import { greaterOrEqual } from "https://deno.land/std@0.224.0/semver/mod.ts";
+import { parse, greaterOrEqual } from "https://deno.land/std@0.224.0/semver/mod.ts";
+import { getLogger } from "https://deno.land/std@0.224.0/log/mod.ts";
 import { existsSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { VersionType } from "./types/json/base.ts";
 import { STORE_DIR } from "./static.ts";
 
+const LOGGER = getLogger();
+
+const VER_1_14_0 = parse("1.14.0");
+const VER_18w47b = parse("18.47.1");
+
+
 export function snapshotToSemver(snapshotVersion: string): string {
-  // 23w12a-blash
+  // 23w12a-blah
   const regex = new RegExp(/(\d{2})w(\d{2})([a-z])(?:-(\w+))?/);
 
   const result = snapshotVersion.match(regex);
@@ -29,7 +36,13 @@ export function checkVesionJsonPresent(
     version.indexOf("w") < 3
   ) {
     version = snapshotToSemver(version);
-    return greaterOrEqual(version, "18.47.1"); // 18w47b
+    try {
+      const parsedVersion = parse(version);
+      return greaterOrEqual(parsedVersion, VER_18w47b);
+    } catch (error) {
+      LOGGER.error(`Got error during compare version '18w47b' and '${version}' : ${error}`);
+      throw error;
+    }
   }
 
   if (version.indexOf(".") == version.lastIndexOf(".")) {
@@ -50,8 +63,11 @@ export function checkVesionJsonPresent(
 
   // Failed to false
   try {
-    return greaterOrEqual(version, "1.14.0");
-  } catch {
+    const parsedVersion = parse(version);
+    return greaterOrEqual(parsedVersion, VER_1_14_0);
+  } catch (error) {
+    // Use warning as this is optional.
+    LOGGER.warn(`Got error during compare version '1.14.0' and '${version}' : ${error}`)
     return false;
   }
 }
