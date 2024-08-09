@@ -2,7 +2,6 @@ name: Build and Deploy
 
 on:
   push:
-    branches: [master]
   schedule:
     - cron: "5 4 * * *"
   workflow_dispatch:
@@ -21,6 +20,7 @@ jobs:
           ref: refs/heads/master
 
       - name: Checkout versions
+        if: github.ref == 'refs/heads/master'
         uses: actions/checkout@v4
         with:
           path: "versions"
@@ -41,6 +41,7 @@ jobs:
         run: deno run -A ./src/main.ts
 
       - name: Deploy to gh-pages
+        if: github.ref == 'refs/heads/master'
         uses: JamesIves/github-pages-deploy-action@v4.6.3
         with:
           branch: gh-pages # The branch the action should deploy to.
