@@ -52,7 +52,7 @@ async function downloadJarFile(url: string, version: string) {
     write: true,
   });
   await res.body?.pipeTo(file.writable);
-  file.close();
+  // file.close();
 
   LOGGER.debug(`Downloaded {version}.jar from {url}`, { version, url });
   return Promise.resolve(true);
