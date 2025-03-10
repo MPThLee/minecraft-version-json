@@ -36,7 +36,7 @@ export function trackPromises<T>(
   for (const p of promises) {
     wrappedPromises.push(
       p
-        .then(async (result) => {
+        .then((result) => {
           return result;
         })
         .catch(async (error) => {

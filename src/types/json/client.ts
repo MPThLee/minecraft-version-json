@@ -225,10 +225,13 @@ export const gameAndJvmArgumentSchema = z.object({
  * @property {any} [classifiers] - Optional classifiers for additional artifacts.
  */
 export const libraryDownloadsSchema = z.object({
-  /** Artifact download information */
-  artifact: artifactDownloadSchema,
+  /**
+   * Artifact download information
+   * May not be present for some libraries. (using classifiers instead)
+   */
+  artifact: artifactDownloadSchema.optional(),
   /** Optional classifiers for other platforms */
-  classifiers: z.any().optional(),
+  classifiers: z.record(z.string(), artifactDownloadSchema).optional(),
 });
 
 /**
