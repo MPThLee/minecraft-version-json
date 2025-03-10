@@ -26,11 +26,13 @@ async function main() {
   });
 
   if (result && result.some((r) => r.status === "rejected")) {
-    LOGGER.error("Download Failed: {result}", { result });
+    // collect only rejected promises
+    const errors = result.filter((r) => r.status === "rejected");
+    LOGGER.error("Download Failed: {errors}", { errors });
     Deno.exit(1);
   }
 
-  LOGGER.info("Download Complete: {result}", { result });
+  LOGGER.info("Download Completed!");
   Deno.exit(0);
 }
 
