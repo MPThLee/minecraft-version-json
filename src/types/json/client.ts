@@ -147,7 +147,10 @@ export const featureRuleSchema = baseRuleSchema.extend({
  * @property {string} os.arch - OS architecture.
  */
 export const osRuleSchema = baseRuleSchema.extend({
-  /* Operating system details */
+  /*
+   * Operating system details
+   * Can be optional for allow all but disallow specific OS.
+   */
   os: z
     .object({
       /* OS name */
@@ -157,7 +160,8 @@ export const osRuleSchema = baseRuleSchema.extend({
       /* OS architecture */
       arch: z.string().optional(),
     })
-    .passthrough(),
+    .passthrough()
+    .optional(),
 });
 
 export const jvmRuleSchema = baseRuleSchema
