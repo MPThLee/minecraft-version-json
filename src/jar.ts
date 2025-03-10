@@ -1,9 +1,9 @@
 import { STORE_DIR, TEMP_DIR } from "./static.ts";
-import { getLogger } from "https://deno.land/std@0.224.0/log/mod.ts";
+import { getLogger } from "@logtape/logtape";
 import { checkStoreDirAndCreate } from "./utils.ts";
 import { downloadClientManifest } from "./manifest.ts";
 
-const LOGGER = getLogger();
+const LOGGER = getLogger(["minecraft-version-json", "jar"]);
 
 export async function extractData(
   client_url: string,
@@ -36,10 +36,12 @@ export async function extractData(
     });
 
     return Promise.resolve(true);
-  } catch (e) {
-    LOGGER.error(`Error on ${version}`);
-    LOGGER.error(e);
-    return Promise.reject(false);
+  } catch (error) {
+    LOGGER.error(`Error on {version} extraction: {error}`, {
+      version,
+      error,
+    });
+    return Promise.reject(error);
   }
 }
 
@@ -50,6 +52,10 @@ async function downloadJarFile(url: string, version: string) {
     write: true,
   });
   await res.body?.pipeTo(file.writable);
+  // file.close();
+
+  LOGGER.debug(`Downloaded {version}.jar from {url}`, { version, url });
+  return Promise.resolve(true);
 }
 
 async function extractJarFile(version: string): Promise<Deno.CommandStatus> {
@@ -57,12 +63,21 @@ async function extractJarFile(version: string): Promise<Deno.CommandStatus> {
   const cwd = `${TEMP_DIR}/${version}_decompress`;
 
   // It's cursed...
+  LOGGER.debug(`Create jar extract directory: {cwd}`, { cwd });
   await Deno.mkdir(cwd, { recursive: true });
   const command = new Deno.Command("jar", {
     cwd: cwd,
     args: ["xvf", jar, "version.json"],
   });
   const process = command.spawn();
-  await process.output();
-  return process.status;
+  const output = await process.output();
+  LOGGER.debug(`Extract output: {output}`, { output });
+
+  const status = await process.status;
+
+  if (!status.success) {
+    LOGGER.error(`Failed to extract {version}.jar`, { version });
+    return Promise.reject(status);
+  }
+  return Promise.resolve(status);
 }

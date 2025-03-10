@@ -1,10 +1,12 @@
-import * as log from "https://deno.land/std@0.224.0/log/mod.ts";
+import "./logger.ts";
+import { getLogger } from "@logtape/logtape";
 import { downloadVersionManifest, returnValidVersions } from "./manifest.ts";
 import { dirExistsOnStore } from "./utils.ts";
 import { extractData } from "./jar.ts";
 import { TEMP_DIR } from "./static.ts";
+import { trackPromises } from "./progress.ts";
 
-const LOGGER = log.getLogger();
+const LOGGER = getLogger(["minecraft-version-json", "main"]);
 
 async function main() {
   LOGGER.info(TEMP_DIR);
@@ -19,7 +21,19 @@ async function main() {
 
   LOGGER.info("Start Download...");
   const promiseVersions = versions.map((v) => extractData(v.url, v.id));
-  const result = Promise.allSettled(promiseVersions);
+  const result = await trackPromises(promiseVersions, {
+    title: "Downloading",
+  });
+
+  if (result && result.some((r) => r.status === "rejected")) {
+    // collect only rejected promises
+    const errors = result.filter((r) => r.status === "rejected");
+    LOGGER.error("Download Failed: {errors}", { errors });
+    Deno.exit(1);
+  }
+
+  LOGGER.info("Download Completed!");
+  Deno.exit(0);
 }
 
 main();

@@ -1,5 +1,5 @@
 // https://gist.github.com/mayankchoubey/196827b3575116fdb9ea06e6381d9229#file-deno_download_file-ts
-import { ensureFile } from "https://deno.land/std@0.224.0/fs/ensure_file.ts";
+import { ensureFile } from "jsr:@std/fs";
 
 export async function downloadFile(src: string, dest: string) {
   if (!(src.startsWith("http://") || src.startsWith("https://"))) {
