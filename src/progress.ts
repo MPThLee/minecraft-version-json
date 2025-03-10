@@ -35,11 +35,18 @@ export function trackPromises<T>(
   const wrappedPromises: Promise<T>[] = [];
   for (const p of promises) {
     wrappedPromises.push(
-      p.then(async (result) => {
-        count++;
-        await progress.render(count);
-        return result;
-      })
+      p
+        .then(async (result) => {
+          return result;
+        })
+        .catch(async (error) => {
+          await progress.console(`Error: ${error}`);
+          return error;
+        })
+        .finally(async () => {
+          count++;
+          await progress.render(count);
+        })
     );
   }
 
