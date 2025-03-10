@@ -72,5 +72,12 @@ async function extractJarFile(version: string): Promise<Deno.CommandStatus> {
   const process = command.spawn();
   const output = await process.output();
   LOGGER.debug(`Extract output: {output}`, { output });
-  return process.status;
+
+  const status = await process.status;
+
+  if (!status.success) {
+    LOGGER.error(`Failed to extract {version}.jar`, { version });
+    return Promise.reject(status);
+  }
+  return Promise.resolve(status);
 }

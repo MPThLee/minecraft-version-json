@@ -16,12 +16,23 @@ export async function downloadVersionManifest(): Promise<VersionManifestJSON> {
     url: VERSION_MANIFEST_URL,
     status: data.status,
   });
+
   if (data.ok) {
     const json = await data.json();
-    const result = versionManifestJSONSchema.parse(json);
-    LOGGER.debug("Parsed version manifest: {result}", { result });
 
-    return Promise.resolve(result);
+    const result = versionManifestJSONSchema.safeParse(json);
+    if (result.success) {
+      LOGGER.debug("Parsed version manifest for '{url}' successfully", {
+        url: VERSION_MANIFEST_URL,
+      });
+      return Promise.resolve(result.data);
+    }
+
+    LOGGER.error("Failed to parse version manifest '{url}': {result}", {
+      url: VERSION_MANIFEST_URL,
+      result,
+    });
+    return Promise.reject(result.error);
   }
 
   LOGGER.error("Failed to download version manifest from '{url}': {status}", {
@@ -44,12 +55,21 @@ export async function downloadClientManifest(url: string): Promise<ClientJson> {
     url,
     status: data.status,
   });
+
   if (data.ok) {
     const json = await data.json();
-    const result = clientJsonSchema.parse(json);
-    LOGGER.debug("Parsed client manifest: {result}", { result });
 
-    return Promise.resolve(result);
+    const result = clientJsonSchema.safeParse(json);
+    if (result.success) {
+      LOGGER.debug("Parsed client manifest for '{url}': {result}", {
+        url,
+        result,
+      });
+      return Promise.resolve(result.data);
+    }
+
+    LOGGER.error("Failed to parse client manifest: {result}", { result });
+    return Promise.reject(result.error);
   }
 
   LOGGER.error("Failed to download client manifest from '{url}': {status}", {
