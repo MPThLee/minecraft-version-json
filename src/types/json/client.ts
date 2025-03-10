@@ -142,18 +142,14 @@ export const featureRuleSchema = baseRuleSchema.extend({
  * @property {string} os.arch - OS architecture.
  */
 export const osRuleSchema = baseRuleSchema.extend({
-  /*
-   * Operating system details
-   * Can be optional for allow all but disallow specific OS.
-   */
   os: z
     .object({
       /* OS name */
-      name: z.enum(["windows", "osx", "linux"]),
+      name: z.enum(["windows", "osx", "linux"]).optional(),
       /* OS version regex */
       version: z.string().optional(),
       /* OS architecture */
-      arch: z.string().optional(),
+      arch: z.union([z.literal("x86"), z.string()]).optional(),
     })
     .passthrough()
     .optional(),
