@@ -114,8 +114,11 @@ export const javaVersionSchema = z.object({
 export const baseRuleSchema = z.object({
   /* Rule action: allow or disallow */
   action: z.enum(["allow", "disallow"]),
+});
+
+export const valueRuleSchema = baseRuleSchema.extend({
   /* Argument value or array of values */
-  value: z.union([z.string(), z.array(z.string())]),
+  value: z.union([z.string(), z.array(z.string())]).optional(),
 });
 
 /**
@@ -157,6 +160,9 @@ export const osRuleSchema = baseRuleSchema.extend({
     .passthrough(),
 });
 
+export const jvmRuleSchema = baseRuleSchema
+  .merge(osRuleSchema)
+  .merge(featureRuleSchema);
 /**
  * Conditional argument based on feature rules.
  * @property {Array} rules - Array of feature rules.
@@ -181,6 +187,7 @@ export const conditionalOsArgumentSchema = z.object({
 export const gameArgumentSchema = z.union([
   z.string(),
   conditionalFeatureArgumentSchema,
+  valueRuleSchema,
 ]);
 
 /**
@@ -189,6 +196,7 @@ export const gameArgumentSchema = z.union([
 export const jvmArgumentSchema = z.union([
   z.string(),
   conditionalOsArgumentSchema,
+  valueRuleSchema,
 ]);
 
 /**
