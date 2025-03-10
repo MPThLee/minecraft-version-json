@@ -36,12 +36,12 @@ export async function extractData(
     });
 
     return Promise.resolve(true);
-  } catch (e) {
+  } catch (error) {
     LOGGER.error(`Error on {version} extraction: {error}`, {
       version,
-      error: e,
+      error,
     });
-    return Promise.reject(false);
+    return Promise.reject(error);
   }
 }
 

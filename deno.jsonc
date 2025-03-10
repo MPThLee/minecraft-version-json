@@ -3,6 +3,7 @@
     "dev": "deno run --watch src/main.ts"
   },
   "imports": {
+    "@deno-library/progress": "jsr:@deno-library/progress@^1.5.1",
     "@logtape/logtape": "jsr:@logtape/logtape@^0.9.0",
     "@std/fs": "jsr:@std/fs@^1.0.14",
     "@std/semver": "jsr:@std/semver@^1.0.4",

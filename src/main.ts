@@ -4,6 +4,7 @@ import { downloadVersionManifest, returnValidVersions } from "./manifest.ts";
 import { dirExistsOnStore } from "./utils.ts";
 import { extractData } from "./jar.ts";
 import { TEMP_DIR } from "./static.ts";
+import { trackPromises } from "./progress.ts";
 
 const LOGGER = getLogger(["minecraft-version-json", "main"]);
 
@@ -20,7 +21,9 @@ async function main() {
 
   LOGGER.info("Start Download...");
   const promiseVersions = versions.map((v) => extractData(v.url, v.id));
-  const result = await Promise.allSettled(promiseVersions);
+  const result = await trackPromises(promiseVersions, {
+    title: "Downloading",
+  });
 
   if (result && result.some((r) => r.status === "rejected")) {
     LOGGER.error("Download Failed: {result}", { result });
