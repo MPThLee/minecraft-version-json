@@ -116,11 +116,6 @@ export const baseRuleSchema = z.object({
   action: z.enum(["allow", "disallow"]),
 });
 
-export const valueRuleSchema = baseRuleSchema.extend({
-  /* Argument value or array of values */
-  value: z.union([z.string(), z.array(z.string())]).optional(),
-});
-
 /**
  * Feature rule schema.
  * @property {object} features - Feature flags that determine the rule.
@@ -174,6 +169,8 @@ export const jvmRuleSchema = baseRuleSchema
 export const conditionalFeatureArgumentSchema = z.object({
   /* Array of feature rules */
   rules: z.array(featureRuleSchema),
+  /* Argument value or array of values */
+  value: z.union([z.string(), z.array(z.string())]).optional(),
 });
 
 /**
@@ -183,6 +180,8 @@ export const conditionalFeatureArgumentSchema = z.object({
 export const conditionalOsArgumentSchema = z.object({
   /* Array of OS rules */
   rules: z.array(osRuleSchema),
+  /* Argument value or array of values */
+  value: z.union([z.string(), z.array(z.string())]).optional(),
 });
 
 /**
@@ -191,7 +190,6 @@ export const conditionalOsArgumentSchema = z.object({
 export const gameArgumentSchema = z.union([
   z.string(),
   conditionalFeatureArgumentSchema,
-  valueRuleSchema,
 ]);
 
 /**
@@ -200,16 +198,17 @@ export const gameArgumentSchema = z.union([
 export const jvmArgumentSchema = z.union([
   z.string(),
   conditionalOsArgumentSchema,
-  valueRuleSchema,
 ]);
 
 /**
  * Combined game and JVM argument schema.
  */
-export const gameAndJvmArgumentSchema = z.union([
-  gameArgumentSchema,
-  jvmArgumentSchema,
-]);
+export const gameAndJvmArgumentSchema = z.object({
+  /** Contains arguments supplied to the game, such as information about the username and the version. */
+  game: z.array(gameArgumentSchema),
+  /** Contains JVM arguments, such as information about memory allocation, garbage collector selection, or environment variables. */
+  jvm: z.array(jvmArgumentSchema),
+});
 
 /* ========================================================================== */
 /* Library and Logging Schemas                                              */
@@ -298,36 +297,38 @@ export const loggingSchema = z
  * @property {string} time - Time in ISO-8601 format.
  * @property {"release"|"snapshot"|"old_beta"|"old_alpha"} type - Version type.
  */
-export const clientJsonSchema = z.object({
-  /* List of game or JVM arguments */
-  arguments: z.array(gameAndJvmArgumentSchema),
-  /* Assets index information */
-  assetIndex: assetIndexSchema,
-  /* Assets version string */
-  assets: z.string(),
-  /* Compliance level (optional) */
-  complianceLevel: z.number().optional(),
-  /* Download information */
-  downloads: rootDownloadsSchema,
-  /* Version identifier */
-  id: z.string(),
-  /* Java version details */
-  javaVersion: javaVersionSchema,
-  /* Array of libraries */
-  libraries: z.array(librarySchema),
-  /* Logging configuration details */
-  logging: loggingSchema,
-  /* Main game class */
-  mainClass: z.string(),
-  /* Minimum launcher version number */
-  minimumLauncherVersion: z.number(),
-  /* Release time in ISO-8601 format */
-  releaseTime: z.string(),
-  /* Time in ISO-8601 format */
-  time: z.string(),
-  /* Version type */
-  type: VersionTypeSchema,
-});
+export const clientJsonSchema = z
+  .object({
+    /* List of game or JVM arguments */
+    arguments: gameAndJvmArgumentSchema,
+    /* Assets index information */
+    assetIndex: assetIndexSchema,
+    /* Assets version string */
+    assets: z.string(),
+    /* Compliance level (optional) */
+    complianceLevel: z.number().optional(),
+    /* Download information */
+    downloads: rootDownloadsSchema,
+    /* Version identifier */
+    id: z.string(),
+    /* Java version details */
+    javaVersion: javaVersionSchema,
+    /* Array of libraries */
+    libraries: z.array(librarySchema),
+    /* Logging configuration details */
+    logging: loggingSchema,
+    /* Main game class */
+    mainClass: z.string(),
+    /* Minimum launcher version number */
+    minimumLauncherVersion: z.number(),
+    /* Release time in ISO-8601 format */
+    releaseTime: z.string(),
+    /* Time in ISO-8601 format */
+    time: z.string(),
+    /* Version type */
+    type: VersionTypeSchema,
+  })
+  .strict();
 
 /* ========================================================================== */
 /* Exported Types                                                           */
