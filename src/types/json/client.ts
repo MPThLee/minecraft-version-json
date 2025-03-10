@@ -7,7 +7,7 @@ import { z } from "zod";
 import { VersionTypeSchema } from "./base.ts";
 
 /* ========================================================================== */
-/* Base Schemas                                                             */
+/* Base Schemas                                                               */
 /* ========================================================================== */
 
 /**
@@ -17,11 +17,11 @@ import { VersionTypeSchema } from "./base.ts";
  * @property {string} url - The download URL.
  */
 export const baseDownloadSchema = z.object({
-  /* SHA1 hash */
+  /** SHA1 hash */
   sha1: z.string(),
-  /* File size in bytes */
+  /** File size in bytes */
   size: z.number(),
-  /* Download URL */
+  /** Download URL */
   url: z.string(),
 });
 
@@ -30,7 +30,7 @@ export const baseDownloadSchema = z.object({
  * @property {string} path - Path to store the downloaded artifact.
  */
 export const artifactDownloadSchema = baseDownloadSchema.extend({
-  /* Relative path to store the artifact */
+  /** Relative path to store the artifact */
   path: z.string(),
 });
 
@@ -39,12 +39,12 @@ export const artifactDownloadSchema = baseDownloadSchema.extend({
  * @property {string} id - Identifier for the logging file.
  */
 export const loggingDownloadSchema = baseDownloadSchema.extend({
-  /* Identifier for the logging file */
+  /** Identifier for the logging file */
   id: z.string(),
 });
 
 /* ========================================================================== */
-/* Asset and Download Schemas                                               */
+/* Asset and Download Schemas                                                 */
 /* ========================================================================== */
 
 /**
@@ -56,15 +56,15 @@ export const loggingDownloadSchema = baseDownloadSchema.extend({
  * @property {string} url - URL to download the assets.
  */
 export const assetIndexSchema = z.object({
-  /* Assets version id */
+  /** Assets version id */
   id: z.string(),
-  /* SHA1 hash of assets file */
+  /** SHA1 hash of assets file */
   sha1: z.string(),
-  /* File size */
+  /** File size */
   size: z.number(),
-  /* Total size of the assets version */
+  /** Total size of the assets version */
   totalSize: z.number(),
-  /* Assets download URL */
+  /** Assets download URL */
   url: z.string(),
 });
 
@@ -76,18 +76,26 @@ export const assetIndexSchema = z.object({
  * @property {object} server_mappings - Server mappings download information.
  */
 export const rootDownloadsSchema = z.object({
-  /* Client jar download information */
+  /** Client jar download information */
   client: baseDownloadSchema,
-  /* Client mappings download information */
+  /**
+   * Client mappings download information
+   * Note: Available since 19w36a (1.15 snapshots).
+   * @see https://minecraft.wiki/w/Obfuscation_map
+   */
   client_mappings: baseDownloadSchema,
-  /* Server jar download information */
+  /** Server jar download information */
   server: baseDownloadSchema,
-  /* Server mappings download information */
-  server_mappings: baseDownloadSchema,
+  /**
+   * Server mappings download information
+   * Note: Available since 19w36a (1.15 snapshots).
+   * @see https://minecraft.wiki/w/Obfuscation_map
+   */
+  server_mappings: baseDownloadSchema.optional(),
 });
 
 /* ========================================================================== */
-/* Java Version Schema                                                      */
+/* Java Version Schema                                                        */
 /* ========================================================================== */
 
 /**
@@ -96,14 +104,14 @@ export const rootDownloadsSchema = z.object({
  * @property {number} majorVersion - The major version number.
  */
 export const javaVersionSchema = z.object({
-  /* Java component name */
+  /** Java component name */
   component: z.string(),
-  /* Major version number */
+  /** Major version number */
   majorVersion: z.number(),
 });
 
 /* ========================================================================== */
-/* Rules and Conditional Arguments                                          */
+/* Rules and Conditional Arguments                                            */
 /* ========================================================================== */
 
 /**
@@ -112,7 +120,7 @@ export const javaVersionSchema = z.object({
  * @property {string|string[]} value - The argument value(s).
  */
 export const baseRuleSchema = z.object({
-  /* Rule action: allow or disallow */
+  /** Rule action: allow or disallow */
   action: z.enum(["allow", "disallow"]),
 });
 
@@ -121,7 +129,7 @@ export const baseRuleSchema = z.object({
  * @property {object} features - Feature flags that determine the rule.
  */
 export const featureRuleSchema = baseRuleSchema.extend({
-  /* Feature flags; may include is_demo_user, has_custom_resolution, etc. */
+  /** Feature flags; may include is_demo_user, has_custom_resolution, etc. */
   features: z
     .object({
       is_demo_user: z.boolean().optional(),
@@ -144,11 +152,11 @@ export const featureRuleSchema = baseRuleSchema.extend({
 export const osRuleSchema = baseRuleSchema.extend({
   os: z
     .object({
-      /* OS name */
+      /** OS name */
       name: z.enum(["windows", "osx", "linux"]).optional(),
-      /* OS version regex */
+      /** OS version regex */
       version: z.string().optional(),
-      /* OS architecture */
+      /** OS architecture */
       arch: z.union([z.literal("x86"), z.string()]).optional(),
     })
     .passthrough()
@@ -163,9 +171,9 @@ export const jvmRuleSchema = baseRuleSchema
  * @property {Array} rules - Array of feature rules.
  */
 export const conditionalFeatureArgumentSchema = z.object({
-  /* Array of feature rules */
+  /** Array of feature rules */
   rules: z.array(featureRuleSchema),
-  /* Argument value or array of values */
+  /** Argument value or array of values */
   value: z.union([z.string(), z.array(z.string())]).optional(),
 });
 
@@ -174,9 +182,9 @@ export const conditionalFeatureArgumentSchema = z.object({
  * @property {Array} rules - Array of OS rules.
  */
 export const conditionalOsArgumentSchema = z.object({
-  /* Array of OS rules */
+  /** Array of OS rules */
   rules: z.array(osRuleSchema),
-  /* Argument value or array of values */
+  /** Argument value or array of values */
   value: z.union([z.string(), z.array(z.string())]).optional(),
 });
 
@@ -207,7 +215,7 @@ export const gameAndJvmArgumentSchema = z.object({
 });
 
 /* ========================================================================== */
-/* Library and Logging Schemas                                              */
+/* Library and Logging Schemas                                                */
 /* ========================================================================== */
 
 /**
@@ -216,9 +224,9 @@ export const gameAndJvmArgumentSchema = z.object({
  * @property {any} [classifiers] - Optional classifiers for additional artifacts.
  */
 export const libraryDownloadsSchema = z.object({
-  /* Artifact download information */
+  /** Artifact download information */
   artifact: artifactDownloadSchema,
-  /* Optional classifiers for other platforms */
+  /** Optional classifiers for other platforms */
   classifiers: z.any().optional(),
 });
 
@@ -232,17 +240,17 @@ export const libraryDownloadsSchema = z.object({
  * @property {Array} rules - Array of OS rules.
  */
 export const librarySchema = z.object({
-  /* Library download details */
+  /** Library download details */
   downloads: libraryDownloadsSchema,
-  /* Maven identifier for the library */
+  /** Maven identifier for the library */
   name: z.string(),
-  /* Repository URL - Used by Forge Mod Loader */
+  /** Repository URL - Used by Forge Mod Loader */
   url: z.string().optional(),
-  /* Optional native libraries info */
+  /** Optional native libraries info */
   natives: z.any().optional(),
-  /* Optional extraction rules */
+  /** Optional extraction rules */
   extract: z.any().optional(),
-  /* Rules for inclusion based on OS */
+  /** Rules for inclusion based on OS */
   rules: z.array(osRuleSchema).optional(),
 });
 
@@ -252,11 +260,11 @@ export const librarySchema = z.object({
  * @property {object} file - Log4j2 XML file download information.
  */
 export const loggingClientSchema = z.object({
-  /* JVM argument for log configuration */
+  /** JVM argument for log configuration */
   argument: z.string(),
-  /* Log4j2 XML configuration file details */
+  /** Log4j2 XML configuration file details */
   file: loggingDownloadSchema,
-  /* Logging type */
+  /** Logging type */
   type: z.union([z.literal("log4j2-xml"), z.string()]),
 });
 
@@ -267,13 +275,13 @@ export const loggingClientSchema = z.object({
  */
 export const loggingSchema = z
   .object({
-    /* Logging client configuration */
+    /** Logging client configuration */
     client: loggingClientSchema,
   })
   .passthrough();
 
 /* ========================================================================== */
-/* Client JSON Schema                                                       */
+/* Client JSON Schema                                                         */
 /* ========================================================================== */
 
 /**
@@ -295,40 +303,44 @@ export const loggingSchema = z
  */
 export const clientJsonSchema = z
   .object({
-    /* List of game or JVM arguments */
+    /** List of game or JVM arguments */
     arguments: gameAndJvmArgumentSchema,
-    /* Assets index information */
+    /** Assets index information */
     assetIndex: assetIndexSchema,
-    /* Assets version string */
+    /** Assets version string */
     assets: z.string(),
-    /* Compliance level (optional) */
+    /**
+     * Compliance level (optional)
+     * `0` until `1.16.4-pre2`, and `1` for all versions after.
+     * A value of 0 causes the official launcher to warn the player about missing player safety features when this version is selected.
+     */
     complianceLevel: z.number().optional(),
-    /* Download information */
+    /** Download information */
     downloads: rootDownloadsSchema,
-    /* Version identifier */
+    /** Version identifier */
     id: z.string(),
-    /* Java version details */
+    /** Java version details */
     javaVersion: javaVersionSchema,
-    /* Array of libraries */
+    /** Array of libraries */
     libraries: z.array(librarySchema),
-    /* Logging configuration details */
+    /** Logging configuration details */
     logging: loggingSchema,
-    /* Main game class */
+    /** Main game class */
     mainClass: z.string(),
-    /* Minimum launcher version number */
+    /** Minimum launcher version number */
     minimumLauncherVersion: z.number(),
-    /* Release time in ISO-8601 format */
+    /** Release time in ISO-8601 format */
     releaseTime: z.string(),
-    /* Time in ISO-8601 format */
+    /** Time in ISO-8601 format */
     time: z.string(),
-    /* Version type */
+    /** Version type */
     type: VersionTypeSchema,
   })
   .strict();
 
-/* ========================================================================== */
-/* Exported Types                                                           */
-/* ========================================================================== */
+/** ========================================================================== */
+/** Exported Types                                                           */
+/** ========================================================================== */
 
 /**
  * Client JSON type inferred from the schema.
