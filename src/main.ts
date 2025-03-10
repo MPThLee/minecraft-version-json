@@ -20,9 +20,15 @@ async function main() {
 
   LOGGER.info("Start Download...");
   const promiseVersions = versions.map((v) => extractData(v.url, v.id));
-  const result = Promise.allSettled(promiseVersions);
+  const result = await Promise.allSettled(promiseVersions);
+
+  if (result && result.some((r) => r.status === "rejected")) {
+    LOGGER.error("Download Failed: {result}", { result });
+    Deno.exit(1);
+  }
 
   LOGGER.info("Download Complete: {result}", { result });
+  Deno.exit(0);
 }
 
 main();

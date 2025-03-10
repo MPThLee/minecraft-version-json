@@ -61,10 +61,7 @@ export async function downloadClientManifest(url: string): Promise<ClientJson> {
 
     const result = clientJsonSchema.safeParse(json);
     if (result.success) {
-      LOGGER.debug("Parsed client manifest for '{url}': {result}", {
-        url,
-        result,
-      });
+      LOGGER.debug("Parsed client manifest for '{url}' successfully", { url });
       return Promise.resolve(result.data);
     }
 
