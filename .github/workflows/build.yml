@@ -47,19 +47,19 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: "microsoft"
-          java-version: "17"
+          java-version: "21"
 
       - name: Setup deno
-        uses: denoland/setup-deno@v1
+        uses: denoland/setup-deno@v2
         with:
-          deno-version: v1.x
+          deno-version: v2.x
 
       - name: Run script
         run: deno run -A ./src/main.ts
 
       - name: Deploy to gh-pages
         if: ${{ steps.determine-ref.outputs.ref == 'refs/heads/master' }}
-        uses: JamesIves/github-pages-deploy-action@v4.6.3
+        uses: JamesIves/github-pages-deploy-action@v4.7.3
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: versions # The folder the action should deploy.

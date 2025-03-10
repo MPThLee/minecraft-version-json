@@ -1,14 +1,13 @@
-import { parse, greaterOrEqual } from "https://deno.land/std@0.224.0/semver/mod.ts";
-import { getLogger } from "https://deno.land/std@0.224.0/log/mod.ts";
-import { existsSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
+import { parse, greaterOrEqual } from "@std/semver";
+import { getLogger } from "@logtape/logtape";
+import { existsSync } from "@std/fs";
 import { VersionType } from "./types/json/base.ts";
 import { STORE_DIR } from "./static.ts";
 
-const LOGGER = getLogger();
+const LOGGER = getLogger(["minecraft-version-json", "utils"]);
 
 const VER_1_14_0 = parse("1.14.0");
 const VER_18w47b = parse("18.47.1");
-
 
 export function snapshotToSemver(snapshotVersion: string): string {
   // 23w12a-blah
@@ -40,7 +39,10 @@ export function checkVesionJsonPresent(
       const parsedVersion = parse(version);
       return greaterOrEqual(parsedVersion, VER_18w47b);
     } catch (error) {
-      LOGGER.error(`Got error during compare version '18w47b' and '${version}' : ${error}`);
+      LOGGER.error(
+        `Got error during compare version '18w47b' and '{version}' : {error}`,
+        { version, error }
+      );
       throw error;
     }
   }
@@ -67,7 +69,10 @@ export function checkVesionJsonPresent(
     return greaterOrEqual(parsedVersion, VER_1_14_0);
   } catch (error) {
     // Use warning as this is optional.
-    LOGGER.warn(`Got error during compare version '1.14.0' and '${version}' : ${error}`)
+    LOGGER.warn(
+      `Got error during compare version '1.14.0' and '{version}' : {error}`,
+      { version, error }
+    );
     return false;
   }
 }

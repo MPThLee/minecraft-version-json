@@ -1,10 +1,11 @@
-import * as log from "https://deno.land/std@0.224.0/log/mod.ts";
+import "./logger.ts";
+import { getLogger } from "@logtape/logtape";
 import { downloadVersionManifest, returnValidVersions } from "./manifest.ts";
 import { dirExistsOnStore } from "./utils.ts";
 import { extractData } from "./jar.ts";
 import { TEMP_DIR } from "./static.ts";
 
-const LOGGER = log.getLogger();
+const LOGGER = getLogger(["minecraft-version-json", "main"]);
 
 async function main() {
   LOGGER.info(TEMP_DIR);
@@ -20,6 +21,8 @@ async function main() {
   LOGGER.info("Start Download...");
   const promiseVersions = versions.map((v) => extractData(v.url, v.id));
   const result = Promise.allSettled(promiseVersions);
+
+  LOGGER.info("Download Complete: {result}", { result });
 }
 
 main();

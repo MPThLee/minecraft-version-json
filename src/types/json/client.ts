@@ -1,115 +1,327 @@
-// Since this is still unknown, it uses any.
-// deno-lint-ignore-file no-explicit-any
-import { VersionType } from "./base.ts";
+/**
+ * Schema descriptions based on Minecraft client JSON files.
+ * @see https://minecraft.wiki/w/Client.json Minecraft Wiki: Client.json
+ */
 
-// https://minecraft.fandom.com/wiki/Client.json
-export interface ClientJson {
-  arguments: GameAndJvmArgument[];
-  assetIndex: AssetIndex;
-  assets: string;
-  complianceLevel?: number;
-  downloads: RootDownloads;
-  id: string;
-  javaVersion: JavaVersion;
-  libraries: Library[];
-  logging: Logging;
-  mainClass:
-    | "net.minecraft.client.main.Main"
-    | "com.mojang.rubydung.RubyDung"
-    | string;
-  minimumLauncherVersion: number;
-  releaseTime: string;
-  time: string;
-  type: VersionType;
-}
+import { z } from "zod";
+import { VersionTypeSchema } from "./base.ts";
 
-interface AssetIndex {
-  id: string;
-  sha1: string;
-  size: number;
-  totalSize: number;
-  url: string;
-}
+/* ========================================================================== */
+/* Base Schemas                                                             */
+/* ========================================================================== */
 
-interface RootDownloads {
-  client: BaseDownload;
-  client_mappings: BaseDownload;
-  server: BaseDownload;
-  server_mappings: BaseDownload;
-}
+/**
+ * Base download information.
+ * @property {string} sha1 - The SHA1 hash.
+ * @property {number} size - The file size in bytes.
+ * @property {string} url - The download URL.
+ */
+export const baseDownloadSchema = z.object({
+  /* SHA1 hash */
+  sha1: z.string(),
+  /* File size in bytes */
+  size: z.number(),
+  /* Download URL */
+  url: z.string(),
+});
 
-interface Library {
-  downloads: {
-    artifact: ArtifactDownload;
-    classifiers?: any;
-  };
-  name: string;
-  url: string;
+/**
+ * Artifact download information.
+ * @property {string} path - Path to store the downloaded artifact.
+ */
+export const artifactDownloadSchema = baseDownloadSchema.extend({
+  /* Relative path to store the artifact */
+  path: z.string(),
+});
 
-  // Can't found. but maybe on older version.
-  natives?: any;
-  extract?: any;
-  rules: OsRule[];
-}
+/**
+ * Logging download information.
+ * @property {string} id - Identifier for the logging file.
+ */
+export const loggingDownloadSchema = baseDownloadSchema.extend({
+  /* Identifier for the logging file */
+  id: z.string(),
+});
 
-interface Logging {
-  client: {
-    argument: string;
-    file: LoggingDownload;
-  };
-  type: "log4j2-xml" | string;
-  [x: string]: any;
-}
+/* ========================================================================== */
+/* Asset and Download Schemas                                               */
+/* ========================================================================== */
 
-interface ArtifactDownload extends BaseDownload {
-  path: string;
-}
+/**
+ * Asset index information.
+ * @property {string} id - The assets version id.
+ * @property {string} sha1 - The SHA1 hash of the assets file.
+ * @property {number} size - Size of the assets file.
+ * @property {number} totalSize - Total size of the version.
+ * @property {string} url - URL to download the assets.
+ */
+export const assetIndexSchema = z.object({
+  /* Assets version id */
+  id: z.string(),
+  /* SHA1 hash of assets file */
+  sha1: z.string(),
+  /* File size */
+  size: z.number(),
+  /* Total size of the assets version */
+  totalSize: z.number(),
+  /* Assets download URL */
+  url: z.string(),
+});
 
-interface LoggingDownload extends BaseDownload {
-  id: string;
-}
+/**
+ * Downloads information.
+ * @property {object} client - Client jar download information.
+ * @property {object} client_mappings - Client mappings download information.
+ * @property {object} server - Server jar download information.
+ * @property {object} server_mappings - Server mappings download information.
+ */
+export const rootDownloadsSchema = z.object({
+  /* Client jar download information */
+  client: baseDownloadSchema,
+  /* Client mappings download information */
+  client_mappings: baseDownloadSchema,
+  /* Server jar download information */
+  server: baseDownloadSchema,
+  /* Server mappings download information */
+  server_mappings: baseDownloadSchema,
+});
 
-interface BaseDownload {
-  sha1: string;
-  size: number;
-  url: string;
-}
+/* ========================================================================== */
+/* Java Version Schema                                                      */
+/* ========================================================================== */
 
-interface JavaVersion {
-  component:
-    | "jre-legacy"
-    | "java-runtime-alpha"
-    | "java-runtime-gamma"
-    | string;
-  majorVersion: 8 | 16 | 17 | number;
-}
+/**
+ * Java version information.
+ * @property {string} component - The Java component name.
+ * @property {number} majorVersion - The major version number.
+ */
+export const javaVersionSchema = z.object({
+  /* Java component name */
+  component: z.string(),
+  /* Major version number */
+  majorVersion: z.number(),
+});
 
-type Argument = string | string[];
-type GameAndJvmArgument = GameArgument | JvmArgument;
-type GameArgument = string | ConditionalArgument<FeatureRule>;
-type JvmArgument = string | ConditionalArgument<OsRule>;
+/* ========================================================================== */
+/* Rules and Conditional Arguments                                          */
+/* ========================================================================== */
 
-type Rule = FeatureRule | OsRule;
+/**
+ * Base rule for conditional arguments.
+ * @property {"allow"|"disallow"} action - Rule action.
+ * @property {string|string[]} value - The argument value(s).
+ */
+export const baseRuleSchema = z.object({
+  /* Rule action: allow or disallow */
+  action: z.enum(["allow", "disallow"]),
+  /* Argument value or array of values */
+  value: z.union([z.string(), z.array(z.string())]),
+});
 
-interface ConditionalArgument<R extends Rule> {
-  rules: R[];
-}
-interface FeatureRule extends BaseRule {
-  features: {
-    [x: string]: boolean;
-  };
-}
+/**
+ * Feature rule schema.
+ * @property {object} features - Feature flags that determine the rule.
+ */
+export const featureRuleSchema = baseRuleSchema.extend({
+  /* Feature flags; may include is_demo_user, has_custom_resolution, etc. */
+  features: z
+    .object({
+      is_demo_user: z.boolean().optional(),
+      has_custom_resolution: z.boolean().optional(),
+      has_quick_plays_support: z.boolean().optional(),
+      is_quick_play_singleplayer: z.boolean().optional(),
+      is_quick_play_multiplayer: z.boolean().optional(),
+      is_quick_play_realms: z.boolean().optional(),
+    })
+    .passthrough(),
+});
 
-interface OsRule extends BaseRule {
-  os: {
-    name: string;
-    version: string;
-    arch: string;
-    [x: string]: any;
-  };
-}
+/**
+ * OS rule schema.
+ * @property {object} os - Operating system details.
+ * @property {"windows"|"osx"|"linux"} os.name - OS name.
+ * @property {string} os.version - OS version regex.
+ * @property {string} os.arch - OS architecture.
+ */
+export const osRuleSchema = baseRuleSchema.extend({
+  /* Operating system details */
+  os: z
+    .object({
+      /* OS name */
+      name: z.enum(["windows", "osx", "linux"]),
+      /* OS version regex */
+      version: z.string(),
+      /* OS architecture */
+      arch: z.string(),
+    })
+    .passthrough(),
+});
 
-interface BaseRule {
-  action: "allow";
-  value: Argument;
-}
+/**
+ * Conditional argument based on feature rules.
+ * @property {Array} rules - Array of feature rules.
+ */
+export const conditionalFeatureArgumentSchema = z.object({
+  /* Array of feature rules */
+  rules: z.array(featureRuleSchema),
+});
+
+/**
+ * Conditional argument based on OS rules.
+ * @property {Array} rules - Array of OS rules.
+ */
+export const conditionalOsArgumentSchema = z.object({
+  /* Array of OS rules */
+  rules: z.array(osRuleSchema),
+});
+
+/**
+ * Game argument schema: either a simple string or a condition based on features.
+ */
+export const gameArgumentSchema = z.union([
+  z.string(),
+  conditionalFeatureArgumentSchema,
+]);
+
+/**
+ * JVM argument schema: either a simple string or a condition based on OS.
+ */
+export const jvmArgumentSchema = z.union([
+  z.string(),
+  conditionalOsArgumentSchema,
+]);
+
+/**
+ * Combined game and JVM argument schema.
+ */
+export const gameAndJvmArgumentSchema = z.union([
+  gameArgumentSchema,
+  jvmArgumentSchema,
+]);
+
+/* ========================================================================== */
+/* Library and Logging Schemas                                              */
+/* ========================================================================== */
+
+/**
+ * Library downloads information.
+ * @property {object} artifact - Artifact download data.
+ * @property {any} [classifiers] - Optional classifiers for additional artifacts.
+ */
+export const libraryDownloadsSchema = z.object({
+  /* Artifact download information */
+  artifact: artifactDownloadSchema,
+  /* Optional classifiers for other platforms */
+  classifiers: z.any().optional(),
+});
+
+/**
+ * Library schema.
+ * @property {object} downloads - Download details for the library.
+ * @property {string} name - Maven name of the library.
+ * @property {string} url - Repository URL for the library.
+ * @property {any} [natives] - Optional native library information.
+ * @property {any} [extract] - Optional extraction rules.
+ * @property {Array} rules - Array of OS rules.
+ */
+export const librarySchema = z.object({
+  /* Library download details */
+  downloads: libraryDownloadsSchema,
+  /* Maven identifier for the library */
+  name: z.string(),
+  /* Repository URL */
+  url: z.string(),
+  /* Optional native libraries info */
+  natives: z.any().optional(),
+  /* Optional extraction rules */
+  extract: z.any().optional(),
+  /* Rules for inclusion based on OS */
+  rules: z.array(osRuleSchema),
+});
+
+/**
+ * Logging client configuration.
+ * @property {string} argument - JVM argument for setting the log configuration.
+ * @property {object} file - Log4j2 XML file download information.
+ */
+export const loggingClientSchema = z.object({
+  /* JVM argument for log configuration */
+  argument: z.string(),
+  /* Log4j2 XML configuration file details */
+  file: loggingDownloadSchema,
+});
+
+/**
+ * Logging configuration.
+ * @property {object} client - Client-specific logging configuration.
+ * @property {"log4j2-xml"|string} type - Logging type.
+ */
+export const loggingSchema = z
+  .object({
+    /* Logging client configuration */
+    client: loggingClientSchema,
+    /* Logging type */
+    type: z.union([z.literal("log4j2-xml"), z.string()]),
+  })
+  .passthrough();
+
+/* ========================================================================== */
+/* Client JSON Schema                                                       */
+/* ========================================================================== */
+
+/**
+ * Client JSON schema.
+ * @property {Array} arguments - List of game or JVM arguments.
+ * @property {object} assetIndex - Assets index details.
+ * @property {string} assets - Assets version string.
+ * @property {number} [complianceLevel] - Compliance level.
+ * @property {object} downloads - Downloads details.
+ * @property {string} id - Version identifier.
+ * @property {object} javaVersion - Java version information.
+ * @property {Array} libraries - List of libraries.
+ * @property {object} logging - Logging configuration details.
+ * @property {string} mainClass - Main game class.
+ * @property {number} minimumLauncherVersion - Minimum launcher version.
+ * @property {string} releaseTime - Release date-time in ISO-8601 format.
+ * @property {string} time - Time in ISO-8601 format.
+ * @property {"release"|"snapshot"|"old_beta"|"old_alpha"} type - Version type.
+ */
+export const clientJsonSchema = z.object({
+  /* List of game or JVM arguments */
+  arguments: z.array(gameAndJvmArgumentSchema),
+  /* Assets index information */
+  assetIndex: assetIndexSchema,
+  /* Assets version string */
+  assets: z.string(),
+  /* Compliance level (optional) */
+  complianceLevel: z.number().optional(),
+  /* Download information */
+  downloads: rootDownloadsSchema,
+  /* Version identifier */
+  id: z.string(),
+  /* Java version details */
+  javaVersion: javaVersionSchema,
+  /* Array of libraries */
+  libraries: z.array(librarySchema),
+  /* Logging configuration details */
+  logging: loggingSchema,
+  /* Main game class */
+  mainClass: z.string(),
+  /* Minimum launcher version number */
+  minimumLauncherVersion: z.number(),
+  /* Release time in ISO-8601 format */
+  releaseTime: z.string(),
+  /* Time in ISO-8601 format */
+  time: z.string(),
+  /* Version type */
+  type: VersionTypeSchema,
+});
+
+/* ========================================================================== */
+/* Exported Types                                                           */
+/* ========================================================================== */
+
+/**
+ * Client JSON type inferred from the schema.
+ */
+export type ClientJson = z.infer<typeof clientJsonSchema>;
