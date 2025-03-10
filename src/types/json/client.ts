@@ -83,7 +83,8 @@ export const rootDownloadsSchema = z.object({
    * Note: Available since 19w36a (1.15 snapshots).
    * @see https://minecraft.wiki/w/Obfuscation_map
    */
-  client_mappings: baseDownloadSchema,
+  client_mappings: baseDownloadSchema.optional(),
+
   /** Server jar download information */
   server: baseDownloadSchema,
   /**
