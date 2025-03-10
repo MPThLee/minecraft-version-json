@@ -257,6 +257,8 @@ export const loggingClientSchema = z.object({
   argument: z.string(),
   /* Log4j2 XML configuration file details */
   file: loggingDownloadSchema,
+  /* Logging type */
+  type: z.union([z.literal("log4j2-xml"), z.string()]),
 });
 
 /**
@@ -268,8 +270,6 @@ export const loggingSchema = z
   .object({
     /* Logging client configuration */
     client: loggingClientSchema,
-    /* Logging type */
-    type: z.union([z.literal("log4j2-xml"), z.string()]),
   })
   .passthrough();
 
