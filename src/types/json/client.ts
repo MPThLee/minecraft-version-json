@@ -150,9 +150,9 @@ export const osRuleSchema = baseRuleSchema.extend({
       /* OS name */
       name: z.enum(["windows", "osx", "linux"]),
       /* OS version regex */
-      version: z.string(),
+      version: z.string().optional(),
       /* OS architecture */
-      arch: z.string(),
+      arch: z.string().optional(),
     })
     .passthrough(),
 });
@@ -229,14 +229,14 @@ export const librarySchema = z.object({
   downloads: libraryDownloadsSchema,
   /* Maven identifier for the library */
   name: z.string(),
-  /* Repository URL */
-  url: z.string(),
+  /* Repository URL - Used by Forge Mod Loader */
+  url: z.string().optional(),
   /* Optional native libraries info */
   natives: z.any().optional(),
   /* Optional extraction rules */
   extract: z.any().optional(),
   /* Rules for inclusion based on OS */
-  rules: z.array(osRuleSchema),
+  rules: z.array(osRuleSchema).optional(),
 });
 
 /**
