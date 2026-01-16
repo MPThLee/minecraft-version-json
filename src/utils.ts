@@ -114,19 +114,22 @@ export function checkVersionJsonPresent(
     }
   }
 
+  // Handle 1.14 Pre-Release format BEFORE normalization
+  // e.g., "1.14 Pre-Release 4" -> "1.14-pre4"
+  if (version.includes("Pre-Release")) {
+    if (version.includes("1.14")) {
+      version = version
+        .replace(/\s*Pre-Release\s*/, "-pre")
+        .replaceAll(" ", "");
+    }
+  }
+
   // Normalize version to semver (add .0 if needed)
   if (version.indexOf(".") == version.lastIndexOf(".")) {
     const xs = version.split("-");
     version = xs[0] + ".0";
     if (xs.length > 1) {
       version = version + "-" + xs[1];
-    }
-  }
-
-  // Handle 1.14 Pre-Release format
-  if (version.includes("Pre-Release")) {
-    if (version.includes("1.14")) {
-      version = version.replace("Pre-Release", "-pre").replaceAll(" ", "");
     }
   }
 
