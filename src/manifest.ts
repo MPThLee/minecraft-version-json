@@ -6,7 +6,7 @@ import {
   VersionManifestJSON,
   versionManifestJSONSchema,
 } from "./types/json/version_manifest.ts";
-import { checkVesionJsonPresent } from "./utils.ts";
+import { checkVersionJsonPresent } from "./utils.ts";
 
 const LOGGER = getLogger(["minecraft-version-json", "manifest"]);
 
@@ -44,9 +44,9 @@ export async function downloadVersionManifest(): Promise<VersionManifestJSON> {
 }
 
 export function returnValidVersions(
-  data: VersionManifestJSON
+  data: VersionManifestJSON,
 ): ManifestVersion[] {
-  return data.versions.filter((v) => checkVesionJsonPresent(v.id, v.type));
+  return data.versions.filter((v) => checkVersionJsonPresent(v.id, v.type));
 }
 
 export async function downloadClientManifest(url: string): Promise<ClientJson> {
